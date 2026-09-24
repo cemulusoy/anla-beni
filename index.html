@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Anla Beni</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --deniz:#0E2A38;
+    --deniz-acik:#15394B;
+    --kehribar:#FFC24B;
+    --nane:#5FD9A8;
+    --mercan:#FF7A66;
+    --krem:#F3EFE3;
+    --radius:18px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{
+    background:var(--deniz);
+    color:var(--krem);
+    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:17px;
+    line-height:1.5;
+    display:flex;
+    flex-direction:column;
+    min-height:100%;
+  }
+  h1,h2,.rakam,.komut{font-family:"Baloo 2","Nunito",system-ui,sans-serif;font-weight:800;letter-spacing:.01em}
+  .sarma{width:min(1000px,100%);margin:0 auto;padding:20px 18px 40px;flex:1;display:flex;flex-direction:column}
+
+  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
+  header h1{font-size:34px;margin:0;color:var(--kehribar)}
+  header p{margin:0;opacity:.75;font-size:15px}
+
+  .kart{background:var(--deniz-acik);border-radius:var(--radius);padding:22px}
+
+  /* ---- açılış ---- */
+  #acilis h2{font-size:24px;margin:0 0 6px}
+  #acilis p{margin:0 0 22px;max-width:62ch;opacity:.85}
+  .secimler{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+  .secim{
+    background:var(--deniz);border:2px solid rgba(243,239,227,.16);
+    border-radius:var(--radius);padding:20px;text-align:left;color:inherit;
+    font:inherit;cursor:pointer;
+  }
+  .secim:hover,.secim:focus-visible{border-color:var(--kehribar)}
+  .secim strong{display:block;font-family:"Baloo 2",sans-serif;font-size:21px;color:var(--kehribar);margin-bottom:4px}
+  .secim span{opacity:.8;font-size:15px}
+
+  /* ---- sahne ---- */
+  #sahne{display:none;flex:1;flex-direction:column;gap:14px}
+  .ust{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .komut{font-size:26px;color:var(--kehribar);flex:1;min-width:240px}
+  .komut em{font-style:normal;opacity:.55;font-size:17px;font-family:"Nunito",sans-serif;font-weight:700}
+  .rakam{font-size:30px;min-width:92px;text-align:center}
+  .rakam small{display:block;font-family:"Nunito",sans-serif;font-size:12px;font-weight:700;opacity:.6;letter-spacing:.04em}
+
+  .ekran{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;aspect-ratio:4/3}
+  video,canvas.katman{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  video{transform:scaleX(-1)}
+  canvas.katman{transform:scaleX(-1)}
+  .bindirme{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(14,42,56,.88);font-family:"Baloo 2",sans-serif;font-size:44px;color:var(--nane);
+    opacity:0;pointer-events:none;transition:opacity .18s;text-align:center;padding:20px;
+  }
+  .bindirme.gorun{opacity:1}
+
+  .alt{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  button.dugme{
+    font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:12px;
+    padding:12px 20px;background:var(--kehribar);color:#1B1200;
+  }
+  button.dugme.sessiz{background:transparent;color:var(--krem);border:2px solid rgba(243,239,227,.25)}
+  button.dugme:focus-visible,.secim:focus-visible{outline:3px solid var(--nane);outline-offset:2px}
+
+  .gorulen{display:flex;gap:8px;flex-wrap:wrap;min-height:38px}
+  .etiket{background:var(--deniz-acik);border-radius:999px;padding:7px 14px;font-size:15px}
+  .etiket b{color:var(--nane)}
+  .etiket i{font-style:normal;opacity:.55;font-size:13px}
+
+  /* ---- bitiş ---- */
+  #bitis{display:none}
+  #bitis .puan{font-family:"Baloo 2",sans-serif;font-size:64px;color:var(--kehribar);line-height:1}
+  #bitis ul{padding-left:20px;margin:10px 0 22px}
+  .sira{margin-top:18px;border-top:1px solid rgba(243,239,227,.15);padding-top:14px}
+  .sira div{display:flex;justify-content:space-between;max-width:320px;padding:4px 0}
+
+  .durum{opacity:.7;font-size:15px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="sarma">
+
+  <header>
+    <h1>Anla Beni</h1>
+    <p>Yapay Zekâ Evreni · Büyük Ufuklar</p>
+  </header>
+
+  <!-- AÇILIŞ -->
+  <section id="acilis" class="kart">
+    <h2>Makine ne görüyor?</h2>
+    <p>Bu oyun kameraya bakar ve gördüğü nesneyi tahmin eder. Görüntü bilgisayarından hiçbir yere gitmez, her şey burada, tarayıcının içinde olur.</p>
+    <div class="secimler">
+      <button class="secim" id="btnDeneme">
+        <strong>Deneme modu</strong>
+        <span>Seçtiğiniz nesneleri tek tek gösterin, makine ne dediğini görün. Kartı bu bölümde doldurun.</span>
+      </button>
+      <button class="secim" id="btnYaris">
+        <strong>Yarış · 180 saniye</strong>
+        <span>Ekranın istediği nesneyi bulup kameraya gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.</span>
+      </button>
+    </div>
+    <p class="durum" id="durum" style="margin-top:18px"></p>
+  </section>
+
+  <!-- SAHNE -->
+  <section id="sahne">
+    <div class="ust">
+      <div class="komut" id="komut">Deneme modu</div>
+      <div class="rakam" id="sayac" hidden>180<small>saniye</small></div>
+      <div class="rakam" id="puan" hidden>0<small>puan</small></div>
+    </div>
+    <div class="ekran">
+      <video id="video" playsinline muted></video>
+      <canvas class="katman" id="katman"></canvas>
+      <div class="bindirme" id="bindirme"></div>
+    </div>
+    <div class="gorulen" id="gorulen"></div>
+    <div class="alt">
+      <button class="dugme sessiz" id="btnAtla" hidden>Bunu bulamadım</button>
+      <button class="dugme sessiz" id="btnBitir">Bitir</button>
+    </div>
+  </section>
+
+  <!-- BİTİŞ -->
+  <section id="bitis" class="kart">
+    <h2>Süre doldu</h2>
+    <div class="puan" id="sonPuan">0</div>
+    <p style="opacity:.8;margin:6px 0 0">nesne tanıttınız</p>
+    <ul id="sonListe"></ul>
+    <button class="dugme" id="btnSira">Sıradaki oyuncu</button>
+    <button class="dugme sessiz" id="btnBasa">Başa dön</button>
+    <div class="sira" id="tablo"></div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script>
+/* =========================================================================
+   AYARLAR — test ettikten sonra burayı budayın.
+   HAVUZ: yarışta sorulacak nesneler. Sadece modelin evde gerçekten
+   tanıdığını doğruladıklarınızı bırakın.
+   ========================================================================= */
+const HAVUZ = [
+  "fork","spoon","knife","bowl","cup","bottle","book","clock","scissors",
+  "cell phone","remote","keyboard","mouse","laptop","chair","teddy bear",
+  "toothbrush","backpack","umbrella","handbag","tie","potted plant",
+  "apple","orange","carrot","sports ball","vase","tv","suitcase"
+];
+
+const TUR_SURE   = 180;   // saniye
+const ESIK       = 0.62;  // tanıma güven eşiği
+const ONAY_KARE  = 2;     // üst üste kaç karede görülürse sayılsın
+
+const TR = {
+  "person":"kişi","bicycle":"bisiklet","car":"araba","motorcycle":"motosiklet",
+  "airplane":"uçak","bus":"otobüs","train":"tren","truck":"kamyon","boat":"tekne",
+  "traffic light":"trafik ışığı","fire hydrant":"yangın musluğu","stop sign":"dur tabelası",
+  "parking meter":"parkmetre","bench":"bank","bird":"kuş","cat":"kedi","dog":"köpek",
+  "horse":"at","sheep":"koyun","cow":"inek","elephant":"fil","bear":"ayı","zebra":"zebra",
+  "giraffe":"zürafa","backpack":"sırt çantası","umbrella":"şemsiye","handbag":"el çantası",
+  "tie":"kravat","suitcase":"bavul","frisbee":"frizbi","skis":"kayak","snowboard":"snowboard",
+  "sports ball":"top","kite":"uçurtma","baseball bat":"beyzbol sopası",
+  "baseball glove":"beyzbol eldiveni","skateboard":"kaykay","surfboard":"sörf tahtası",
+  "tennis racket":"tenis raketi","bottle":"şişe","wine glass":"kadeh","cup":"kupa",
+  "fork":"çatal","knife":"bıçak","spoon":"kaşık","bowl":"kâse","banana":"muz","apple":"elma",
+  "sandwich":"sandviç","orange":"portakal","broccoli":"brokoli","carrot":"havuç",
+  "hot dog":"sosisli","pizza":"pizza","donut":"donut","cake":"pasta","chair":"sandalye",
+  "couch":"kanepe","potted plant":"saksı bitkisi","bed":"yatak","dining table":"yemek masası",
+  "toilet":"klozet","tv":"televizyon","laptop":"dizüstü bilgisayar","mouse":"fare",
+  "remote":"kumanda","keyboard":"klavye","cell phone":"cep telefonu","microwave":"mikrodalga",
+  "oven":"fırın","toaster":"ekmek kızartma makinesi","sink":"lavabo","refrigerator":"buzdolabı",
+  "book":"kitap","clock":"saat","vase":"vazo","scissors":"makas","teddy bear":"oyuncak ayı",
+  "hair drier":"saç kurutma makinesi","toothbrush":"diş fırçası"
+};
+const tr = e => TR[e] || e;
+
+/* ===================== durum ===================== */
+const E = id => document.getElementById(id);
+let model, akis, mod = null, calisiyor = false;
+let hedef = null, puan = 0, kalan = TUR_SURE, sayacId = null;
+let ustUste = 0, bulunanlar = [], oyuncu = 1, tablo = [];
+
+/* ===================== model ===================== */
+async function modeliYukle(){
+  if (model) return model;
+  E("durum").textContent = "Model yükleniyor, ilk açılışta biraz sürer…";
+  model = await cocoSsd.load({ base:"mobilenet_v2" });
+  E("durum").textContent = "";
+  return model;
+}
+
+async function kamerayiAc(){
+  akis = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:960} }, audio:false });
+  const v = E("video");
+  v.srcObject = akis;
+  await v.play();
+  const k = E("katman");
+  k.width = v.videoWidth; k.height = v.videoHeight;
+}
+
+function kamerayiKapat(){
+  if (akis) akis.getTracks().forEach(t => t.stop());
+  akis = null;
+}
+
+/* ===================== çizim ===================== */
+function ciz(bulgular){
+  const k = E("katman"), c = k.getContext("2d");
+  c.clearRect(0,0,k.width,k.height);
+  c.lineWidth = Math.max(3, k.width/220);
+  c.font = `${Math.max(16, k.width/32)}px Nunito, sans-serif`;
+  bulgular.forEach(b=>{
+    const [x,y,w,h] = b.bbox;
+    const vurgu = hedef && b.class === hedef;
+    c.strokeStyle = vurgu ? "#5FD9A8" : "#FFC24B";
+    c.strokeRect(x,y,w,h);
+    const yazi = `${tr(b.class)} · ${b.class} %${Math.round(b.score*100)}`;
+    c.save();
+    c.scale(-1,1); // görüntü aynalandığı için yazıyı düzeltiyoruz
+    const gx = -(x+w);
+    c.fillStyle = vurgu ? "#5FD9A8" : "#FFC24B";
+    const gen = c.measureText(yazi).width + 14;
+    c.fillRect(gx, Math.max(0,y-30), gen, 28);
+    c.fillStyle = "#0E2A38";
+    c.fillText(yazi, gx+7, Math.max(20,y-10));
+    c.restore();
+  });
+}
+
+function etiketleriYaz(bulgular){
+  const kutu = E("gorulen");
+  kutu.innerHTML = "";
+  const gorulenler = [...new Set(bulgular.map(b=>b.class))];
+  if (!gorulenler.length){
+    kutu.innerHTML = `<span class="etiket" style="opacity:.6">Şu an bir şey göremiyorum</span>`;
+    return;
+  }
+  gorulenler.forEach(sinif=>{
+    const en = bulgular.filter(b=>b.class===sinif).sort((a,b)=>b.score-a.score)[0];
+    kutu.insertAdjacentHTML("beforeend",
+      `<span class="etiket"><b>${tr(sinif)}</b> <i>${sinif} · %${Math.round(en.score*100)}</i></span>`);
+  });
+}
+
+/* ===================== döngü ===================== */
+async function dongu(){
+  if (!calisiyor) return;
+  const bulgular = (await model.detect(E("video"), 12)).filter(b=>b.score >= 0.45);
+  ciz(bulgular);
+  etiketleriYaz(bulgular);
+
+  if (mod === "yaris" && hedef){
+    const tam = bulgular.some(b=>b.class===hedef && b.score>=ESIK);
+    ustUste = tam ? ustUste+1 : 0;
+    if (ustUste >= ONAY_KARE) bulundu();
+  }
+  requestAnimationFrame(dongu);
+}
+
+/* ===================== yarış ===================== */
+function yeniKomut(){
+  const kalanlar = HAVUZ.filter(s => !bulunanlar.includes(s) && s !== hedef);
+  hedef = (kalanlar.length ? kalanlar : HAVUZ)[Math.floor(Math.random() * (kalanlar.length || HAVUZ.length))];
+  ustUste = 0;
+  E("komut").innerHTML = `Makineye bir <span style="color:var(--nane)">${tr(hedef)}</span> göster <em>${hedef}</em>`;
+}
+
+function bindir(metin){
+  const b = E("bindirme");
+  b.textContent = metin;
+  b.classList.add("gorun");
+  setTimeout(()=>b.classList.remove("gorun"), 700);
+}
+
+function bulundu(){
+  puan++; bulunanlar.push(hedef);
+  E("puan").firstChild.textContent = puan;
+  bindir(`${tr(hedef)} ✓`);
+  yeniKomut();
+}
+
+function sayacBaslat(){
+  kalan = TUR_SURE;
+  E("sayac").firstChild.textContent = kalan;
+  sayacId = setInterval(()=>{
+    kalan--;
+    E("sayac").firstChild.textContent = kalan;
+    if (kalan <= 0) turuBitir();
+  }, 1000);
+}
+
+/* ===================== akış ===================== */
+async function basla(secilen){
+  mod = secilen;
+  E("acilis").style.display = "none";
+  E("bitis").style.display = "none";
+  E("sahne").style.display = "flex";
+  E("sayac").hidden = mod !== "yaris";
+  E("puan").hidden  = mod !== "yaris";
+  E("btnAtla").hidden = mod !== "yaris";
+
+  try{
+    await modeliYukle();
+    await kamerayiAc();
+  }catch(e){
+    E("sahne").style.display = "none";
+    E("acilis").style.display = "block";
+    E("durum").textContent = "Kamera açılamadı. Tarayıcıya kamera izni verin ve sayfayı yenileyin.";
+    return;
+  }
+
+  calisiyor = true;
+  if (mod === "yaris"){
+    puan = 0; bulunanlar = [];
+    E("puan").firstChild.textContent = 0;
+    yeniKomut();
+    sayacBaslat();
+  } else {
+    hedef = null;
+    E("komut").innerHTML = `Bir nesne göster <em>makine ne diyor?</em>`;
+  }
+  dongu();
+}
+
+function turuBitir(){
+  calisiyor = false;
+  clearInterval(sayacId);
+  kamerayiKapat();
+  E("sahne").style.display = "none";
+
+  if (mod === "yaris"){
+    tablo.push({ oyuncu, puan });
+    E("sonPuan").textContent = puan;
+    E("sonListe").innerHTML = bulunanlar.map(s=>`<li>${tr(s)} <span style="opacity:.5">${s}</span></li>`).join("");
+    E("tablo").innerHTML = tablo.map(t=>`<div><span>Oyuncu ${t.oyuncu}</span><b>${t.puan}</b></div>`).join("");
+    E("btnSira").hidden = false;
+    E("bitis").style.display = "block";
+  } else {
+    E("acilis").style.display = "block";
+  }
+}
+
+E("btnDeneme").onclick = ()=>basla("deneme");
+E("btnYaris").onclick  = ()=>basla("yaris");
+E("btnBitir").onclick  = turuBitir;
+E("btnAtla").onclick   = ()=>{ bindir("atlandı"); yeniKomut(); };
+E("btnSira").onclick   = ()=>{ oyuncu++; basla("yaris"); };
+E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").style.display="block"; };
+</script>
+</body>
+</html>
+
