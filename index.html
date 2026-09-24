@@ -211,6 +211,13 @@ const turkcesi = ad => { for (const p of esParcalar(ad)) if (TR[p]) return TR[p]
 async function modeliYukle(){
   if (model) return model;
   E("durum").textContent = "Model yükleniyor, ilk açılışta biraz sürer…";
+  // Android ekran kartlarında yarım hassasiyet MobileNet v2'yi bozuyor:
+  try{
+    tf.env().set("WEBGL_FORCE_F16_TEXTURES", false);
+    tf.env().set("WEBGL_RENDER_FLOAT32_ENABLED", true);
+    tf.env().set("WEBGL_PACK_DEPTHWISECONV", false);
+    await tf.ready();
+  }catch(e){}
   model = await mobilenet.load({ version:2, alpha:1.0 });
   E("durum").textContent = "";
   return model;
