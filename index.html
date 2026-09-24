@@ -2,124 +2,99 @@
 <html lang="tr">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Anla Beni</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;800&family=Nunito:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --deniz:#0E2A38;
-    --deniz-acik:#15394B;
-    --kehribar:#FFC24B;
-    --nane:#5FD9A8;
-    --mercan:#FF7A66;
-    --krem:#F3EFE3;
-    --radius:18px;
+    --deniz:#0E2A38; --deniz-acik:#15394B; --kehribar:#FFC24B;
+    --nane:#5FD9A8; --krem:#F3EFE3; --radius:18px;
+    padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
   }
   *{box-sizing:border-box}
   html,body{margin:0;height:100%}
-  body{
-    background:var(--deniz);
-    color:var(--krem);
-    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
-    font-size:17px;
-    line-height:1.5;
-    display:flex;
-    flex-direction:column;
-    min-height:100%;
-  }
-  h1,h2,.rakam,.komut{font-family:"Baloo 2","Nunito",system-ui,sans-serif;font-weight:800;letter-spacing:.01em}
-  .sarma{width:min(1000px,100%);margin:0 auto;padding:20px 18px 40px;flex:1;display:flex;flex-direction:column}
+  body{background:var(--deniz);color:var(--krem);font-family:"Nunito",system-ui,sans-serif;
+       font-size:17px;line-height:1.5;display:flex;flex-direction:column;min-height:100%}
+  h1,h2,.rakam,.komut{font-family:"Baloo 2","Nunito",sans-serif;font-weight:800}
+  .sarma{width:min(1000px,100%);margin:0 auto;padding:16px 16px 36px;flex:1;display:flex;flex-direction:column}
 
-  header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:18px}
-  header h1{font-size:34px;margin:0;color:var(--kehribar)}
-  header p{margin:0;opacity:.75;font-size:15px}
+  header{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  header h1{font-size:30px;margin:0;color:var(--kehribar)}
+  header p{margin:0;opacity:.7;font-size:14px}
 
-  .kart{background:var(--deniz-acik);border-radius:var(--radius);padding:22px}
-
-  /* ---- açılış ---- */
-  #acilis h2{font-size:24px;margin:0 0 6px}
-  #acilis p{margin:0 0 22px;max-width:62ch;opacity:.85}
-  .secimler{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
-  .secim{
-    background:var(--deniz);border:2px solid rgba(243,239,227,.16);
-    border-radius:var(--radius);padding:20px;text-align:left;color:inherit;
-    font:inherit;cursor:pointer;
-  }
+  .kart{background:var(--deniz-acik);border-radius:var(--radius);padding:20px}
+  #acilis h2{font-size:23px;margin:0 0 6px}
+  #acilis p{margin:0 0 20px;max-width:62ch;opacity:.85}
+  .secimler{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr))}
+  .secim{background:var(--deniz);border:2px solid rgba(243,239,227,.16);border-radius:var(--radius);
+         padding:18px;text-align:left;color:inherit;font:inherit;cursor:pointer}
   .secim:hover,.secim:focus-visible{border-color:var(--kehribar)}
-  .secim strong{display:block;font-family:"Baloo 2",sans-serif;font-size:21px;color:var(--kehribar);margin-bottom:4px}
+  .secim strong{display:block;font-family:"Baloo 2",sans-serif;font-size:20px;color:var(--kehribar);margin-bottom:4px}
   .secim span{opacity:.8;font-size:15px}
 
-  /* ---- sahne ---- */
-  #sahne{display:none;flex:1;flex-direction:column;gap:14px}
-  .ust{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
-  .komut{font-size:26px;color:var(--kehribar);flex:1;min-width:240px}
-  .komut em{font-style:normal;opacity:.55;font-size:17px;font-family:"Nunito",sans-serif;font-weight:700}
-  .rakam{font-size:30px;min-width:92px;text-align:center}
-  .rakam small{display:block;font-family:"Nunito",sans-serif;font-size:12px;font-weight:700;opacity:.6;letter-spacing:.04em}
+  #sahne{display:none;flex:1;flex-direction:column;gap:12px}
+  .ust{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .komut{font-size:24px;color:var(--kehribar);flex:1;min-width:220px}
+  .komut em{font-style:normal;opacity:.5;font-size:16px;font-family:"Nunito",sans-serif;font-weight:700}
+  .rakam{font-size:28px;min-width:86px;text-align:center}
+  .rakam small{display:block;font-family:"Nunito",sans-serif;font-size:12px;font-weight:700;opacity:.6}
 
   .ekran{position:relative;border-radius:var(--radius);overflow:hidden;background:#000;aspect-ratio:4/3}
-  video,canvas.katman{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-  video{transform:scaleX(-1)}
-  canvas.katman{transform:scaleX(-1)}
-  .bindirme{
-    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(14,42,56,.88);font-family:"Baloo 2",sans-serif;font-size:44px;color:var(--nane);
-    opacity:0;pointer-events:none;transition:opacity .18s;text-align:center;padding:20px;
-  }
+  video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .nisan{position:absolute;inset:14% 14%;border:3px dashed rgba(243,239,227,.45);border-radius:14px;pointer-events:none}
+  .bindirme{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+            background:rgba(14,42,56,.88);font-family:"Baloo 2",sans-serif;font-size:40px;color:var(--nane);
+            opacity:0;pointer-events:none;transition:opacity .18s;text-align:center;padding:20px}
   .bindirme.gorun{opacity:1}
 
-  .alt{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
-  button.dugme{
-    font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:12px;
-    padding:12px 20px;background:var(--kehribar);color:#1B1200;
-  }
+  .gorulen{display:flex;flex-direction:column;gap:6px;min-height:96px}
+  .satir{display:flex;align-items:baseline;gap:10px;background:var(--deniz-acik);border-radius:12px;padding:8px 14px}
+  .satir b{color:var(--nane);font-size:18px}
+  .satir i{font-style:normal;opacity:.6;font-size:14px;flex:1}
+  .satir span{font-weight:700}
+  .satir.ilk b{color:var(--kehribar);font-size:21px}
+
+  .alt{display:flex;gap:10px;flex-wrap:wrap}
+  button.dugme{font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:12px;
+               padding:12px 20px;background:var(--kehribar);color:#1B1200}
   button.dugme.sessiz{background:transparent;color:var(--krem);border:2px solid rgba(243,239,227,.25)}
   button.dugme:focus-visible,.secim:focus-visible{outline:3px solid var(--nane);outline-offset:2px}
 
-  .gorulen{display:flex;gap:8px;flex-wrap:wrap;min-height:38px}
-  .etiket{background:var(--deniz-acik);border-radius:999px;padding:7px 14px;font-size:15px}
-  .etiket b{color:var(--nane)}
-  .etiket i{font-style:normal;opacity:.55;font-size:13px}
-
-  /* ---- bitiş ---- */
   #bitis{display:none}
-  #bitis .puan{font-family:"Baloo 2",sans-serif;font-size:64px;color:var(--kehribar);line-height:1}
-  #bitis ul{padding-left:20px;margin:10px 0 22px}
-  .sira{margin-top:18px;border-top:1px solid rgba(243,239,227,.15);padding-top:14px}
+  #bitis .puan{font-family:"Baloo 2",sans-serif;font-size:60px;color:var(--kehribar);line-height:1}
+  #bitis ul{padding-left:20px;margin:10px 0 20px}
+  .sira{margin-top:16px;border-top:1px solid rgba(243,239,227,.15);padding-top:12px}
   .sira div{display:flex;justify-content:space-between;max-width:320px;padding:4px 0}
-
   .durum{opacity:.7;font-size:15px}
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
 <body>
 <div class="sarma">
-
   <header>
     <h1>Anla Beni</h1>
     <p>Yapay Zekâ Evreni · Büyük Ufuklar</p>
   </header>
 
-  <!-- AÇILIŞ -->
   <section id="acilis" class="kart">
     <h2>Makine ne görüyor?</h2>
-    <p>Bu oyun kameraya bakar ve gördüğü nesneyi tahmin eder. Görüntü bilgisayarından hiçbir yere gitmez, her şey burada, tarayıcının içinde olur.</p>
+    <p>Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey telefonun içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.</p>
     <div class="secimler">
       <button class="secim" id="btnDeneme">
         <strong>Deneme modu</strong>
-        <span>Seçtiğiniz nesneleri tek tek gösterin, makine ne dediğini görün. Kartı bu bölümde doldurun.</span>
+        <span>Seçtiğiniz nesneleri tek tek gösterin, makinenin en iyi üç tahminini görün. Kartı burada doldurun.</span>
       </button>
       <button class="secim" id="btnYaris">
         <strong>Yarış · 180 saniye</strong>
-        <span>Ekranın istediği nesneyi bulup kameraya gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.</span>
+        <span>Ekranın istediği nesneyi bulup gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.</span>
       </button>
     </div>
-    <p class="durum" id="durum" style="margin-top:18px"></p>
+    <p class="durum" id="durum" style="margin-top:16px"></p>
   </section>
 
-  <!-- SAHNE -->
   <section id="sahne">
     <div class="ust">
       <div class="komut" id="komut">Deneme modu</div>
@@ -128,7 +103,7 @@
     </div>
     <div class="ekran">
       <video id="video" playsinline muted></video>
-      <canvas class="katman" id="katman"></canvas>
+      <div class="nisan"></div>
       <div class="bindirme" id="bindirme"></div>
     </div>
     <div class="gorulen" id="gorulen"></div>
@@ -138,7 +113,6 @@
     </div>
   </section>
 
-  <!-- BİTİŞ -->
   <section id="bitis" class="kart">
     <h2>Süre doldu</h2>
     <div class="puan" id="sonPuan">0</div>
@@ -148,214 +122,195 @@
     <button class="dugme sessiz" id="btnBasa">Başa dön</button>
     <div class="sira" id="tablo"></div>
   </section>
-
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1/dist/mobilenet.min.js"></script>
 <script>
 /* =========================================================================
-   AYARLAR — test ettikten sonra burayı budayın.
-   HAVUZ: yarışta sorulacak nesneler. Sadece modelin evde gerçekten
-   tanıdığını doğruladıklarınızı bırakın.
+   HAVUZ — yarışta sorulacak nesneler.
+   ad      : ekranda çıkacak Türkçe komut
+   etiket  : modelin bu nesne için verebileceği İngilizce karşılıklar
+   Test et, tanımadıklarını sil, yeni bulduklarını ekle.
    ========================================================================= */
 const HAVUZ = [
-  "fork","spoon","knife","bowl","cup","bottle","book","clock","scissors",
-  "cell phone","remote","keyboard","mouse","laptop","chair","teddy bear",
-  "toothbrush","backpack","umbrella","handbag","tie","potted plant",
-  "apple","orange","carrot","sports ball","vase","tv","suitcase"
+  { ad:"kaşık",            etiket:["wooden spoon","ladle","spatula"] },
+  { ad:"kupa",             etiket:["coffee mug","cup"] },
+  { ad:"kâse",             etiket:["soup bowl","mixing bowl","bowl"] },
+  { ad:"tabak",            etiket:["plate"] },
+  { ad:"şişe",             etiket:["water bottle","pop bottle","beer bottle"] },
+  { ad:"tencere",          etiket:["Dutch oven","caldron","cauldron"] },
+  { ad:"tava",             etiket:["frying pan","frypan","wok"] },
+  { ad:"çaydanlık",        etiket:["teapot"] },
+  { ad:"kitap",            etiket:["book jacket","notebook","binder","comic book"] },
+  { ad:"saat",             etiket:["analog clock","wall clock","digital clock","digital watch"] },
+  { ad:"cep telefonu",     etiket:["cellular telephone","cellphone","iPod"] },
+  { ad:"kumanda",          etiket:["remote control"] },
+  { ad:"klavye",           etiket:["computer keyboard","typewriter keyboard","space bar"] },
+  { ad:"fare",             etiket:["mouse"] },
+  { ad:"dizüstü bilgisayar",etiket:["laptop","notebook"] },
+  { ad:"oyuncak ayı",      etiket:["teddy"] },
+  { ad:"sırt çantası",     etiket:["backpack","knapsack"] },
+  { ad:"şemsiye",          etiket:["umbrella"] },
+  { ad:"saksı",            etiket:["pot","flowerpot"] },
+  { ad:"havlu",            etiket:["bath towel","paper towel"] },
+  { ad:"terlik",           etiket:["sandal","clog","Loafer","running shoe"] },
+  { ad:"gözlük",           etiket:["sunglasses","sunglass","dark glasses"] },
+  { ad:"kalem",            etiket:["ballpoint","fountain pen","pencil sharpener"] },
+  { ad:"televizyon",       etiket:["television","screen","monitor"] },
+  { ad:"buzdolabı",        etiket:["refrigerator","icebox"] },
+  { ad:"mikrodalga",       etiket:["microwave","Dutch oven"] },
+  { ad:"ekmek kızartma makinesi", etiket:["toaster"] },
+  { ad:"elma",             etiket:["Granny Smith"] },
+  { ad:"portakal",         etiket:["orange"] },
+  { ad:"muz",              etiket:["banana"] }
 ];
 
-const TUR_SURE   = 180;   // saniye
-const ESIK       = 0.62;  // tanıma güven eşiği
-const ONAY_KARE  = 2;     // üst üste kaç karede görülürse sayılsın
+const TUR_SURE  = 180;
+const ESIK      = 0.20;   // sınıflandırmada olasılıklar düşüktür, eşik de düşük
+const ONAY_KARE = 2;
+const ILK_KAC   = 3;      // ilk kaç tahmin sayılsın
 
+/* deneme modunda Türkçesini bildiklerimiz */
 const TR = {
-  "person":"kişi","bicycle":"bisiklet","car":"araba","motorcycle":"motosiklet",
-  "airplane":"uçak","bus":"otobüs","train":"tren","truck":"kamyon","boat":"tekne",
-  "traffic light":"trafik ışığı","fire hydrant":"yangın musluğu","stop sign":"dur tabelası",
-  "parking meter":"parkmetre","bench":"bank","bird":"kuş","cat":"kedi","dog":"köpek",
-  "horse":"at","sheep":"koyun","cow":"inek","elephant":"fil","bear":"ayı","zebra":"zebra",
-  "giraffe":"zürafa","backpack":"sırt çantası","umbrella":"şemsiye","handbag":"el çantası",
-  "tie":"kravat","suitcase":"bavul","frisbee":"frizbi","skis":"kayak","snowboard":"snowboard",
-  "sports ball":"top","kite":"uçurtma","baseball bat":"beyzbol sopası",
-  "baseball glove":"beyzbol eldiveni","skateboard":"kaykay","surfboard":"sörf tahtası",
-  "tennis racket":"tenis raketi","bottle":"şişe","wine glass":"kadeh","cup":"kupa",
-  "fork":"çatal","knife":"bıçak","spoon":"kaşık","bowl":"kâse","banana":"muz","apple":"elma",
-  "sandwich":"sandviç","orange":"portakal","broccoli":"brokoli","carrot":"havuç",
-  "hot dog":"sosisli","pizza":"pizza","donut":"donut","cake":"pasta","chair":"sandalye",
-  "couch":"kanepe","potted plant":"saksı bitkisi","bed":"yatak","dining table":"yemek masası",
-  "toilet":"klozet","tv":"televizyon","laptop":"dizüstü bilgisayar","mouse":"fare",
-  "remote":"kumanda","keyboard":"klavye","cell phone":"cep telefonu","microwave":"mikrodalga",
-  "oven":"fırın","toaster":"ekmek kızartma makinesi","sink":"lavabo","refrigerator":"buzdolabı",
-  "book":"kitap","clock":"saat","vase":"vazo","scissors":"makas","teddy bear":"oyuncak ayı",
-  "hair drier":"saç kurutma makinesi","toothbrush":"diş fırçası"
+  "coffeepot":"cezve / kahve ibriği","espresso maker":"espresso makinesi","teapot":"çaydanlık",
+  "coffee mug":"kupa","cup":"fincan","soup bowl":"çorba kâsesi","mixing bowl":"karıştırma kâsesi",
+  "plate":"tabak","wooden spoon":"tahta kaşık","ladle":"kepçe","spatula":"spatula",
+  "frying pan":"tava","frypan":"tava","wok":"wok","Dutch oven":"güveç / tencere","caldron":"kazan",
+  "water bottle":"su şişesi","pop bottle":"gazoz şişesi","beer bottle":"bira şişesi",
+  "book jacket":"kitap kapağı","notebook":"defter / dizüstü","binder":"klasör","comic book":"çizgi roman",
+  "analog clock":"akrepli saat","wall clock":"duvar saati","digital clock":"dijital saat","digital watch":"kol saati",
+  "cellular telephone":"cep telefonu","remote control":"kumanda","computer keyboard":"klavye",
+  "typewriter keyboard":"daktilo klavyesi","mouse":"fare","laptop":"dizüstü bilgisayar",
+  "teddy":"oyuncak ayı","backpack":"sırt çantası","knapsack":"sırt çantası","umbrella":"şemsiye",
+  "pot":"saksı","flowerpot":"saksı","bath towel":"havlu","paper towel":"kâğıt havlu",
+  "sandal":"sandalet","clog":"takunya","Loafer":"babet","running shoe":"spor ayakkabı",
+  "sunglasses":"güneş gözlüğü","sunglass":"güneş gözlüğü","ballpoint":"tükenmez kalem",
+  "fountain pen":"dolma kalem","television":"televizyon","screen":"ekran","monitor":"monitör",
+  "refrigerator":"buzdolabı","icebox":"buzdolabı","microwave":"mikrodalga","toaster":"ekmek kızartma makinesi",
+  "Granny Smith":"yeşil elma","orange":"portakal","banana":"muz","lemon":"limon",
+  "washer":"çamaşır makinesi","vacuum":"elektrikli süpürge","lighter":"çakmak","safety pin":"çengelli iğne",
+  "rocking chair":"sallanan sandalye","folding chair":"katlanır sandalye","studio couch":"kanepe",
+  "window shade":"perde","lampshade":"abajur","table lamp":"masa lambası","candle":"mum",
+  "pillow":"yastık","quilt":"yorgan","doormat":"paspas","broom":"süpürge","bucket":"kova",
+  "hair spray":"sprey","lotion":"losyon","pill bottle":"ilaç kutusu","syringe":"şırınga",
+  "envelope":"zarf","rubber eraser":"silgi","pencil box":"kalem kutusu","measuring cup":"ölçü kabı",
+  "wine bottle":"şarap şişesi","beer glass":"bardak","goblet":"kadeh","water jug":"sürahi",
+  "hand blower":"saç kurutma makinesi","electric fan":"vantilatör","space heater":"ısıtıcı",
+  "dishwasher":"bulaşık makinesi","stove":"ocak","oven":"fırın","sewing machine":"dikiş makinesi"
 };
-const tr = e => TR[e] || e;
 
-/* ===================== durum ===================== */
 const E = id => document.getElementById(id);
-let model, akis, mod = null, calisiyor = false;
-let hedef = null, puan = 0, kalan = TUR_SURE, sayacId = null;
-let ustUste = 0, bulunanlar = [], oyuncu = 1, tablo = [];
+let model, akis, mod=null, calisiyor=false;
+let hedef=null, puan=0, kalan=TUR_SURE, sayacId=null;
+let ustUste=0, bulunanlar=[], oyuncu=1, tablo=[];
 
-/* ===================== model ===================== */
+const esParcalar = ad => ad.split(",").map(s=>s.trim());
+const turkcesi = ad => { for (const p of esParcalar(ad)) if (TR[p]) return TR[p]; return null; };
+
 async function modeliYukle(){
   if (model) return model;
   E("durum").textContent = "Model yükleniyor, ilk açılışta biraz sürer…";
-  model = await cocoSsd.load({ base:"mobilenet_v2" });
+  model = await mobilenet.load({ version:2, alpha:1.0 });
   E("durum").textContent = "";
   return model;
 }
-
 async function kamerayiAc(){
-  akis = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:960} }, audio:false });
-  const v = E("video");
-  v.srcObject = akis;
-  await v.play();
-  const k = E("katman");
-  k.width = v.videoWidth; k.height = v.videoHeight;
+  akis = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:640} }, audio:false });
+  const v = E("video"); v.srcObject = akis; await v.play();
 }
+function kamerayiKapat(){ if (akis) akis.getTracks().forEach(t=>t.stop()); akis=null; }
 
-function kamerayiKapat(){
-  if (akis) akis.getTracks().forEach(t => t.stop());
-  akis = null;
-}
-
-/* ===================== çizim ===================== */
-function ciz(bulgular){
-  const k = E("katman"), c = k.getContext("2d");
-  c.clearRect(0,0,k.width,k.height);
-  c.lineWidth = Math.max(3, k.width/220);
-  c.font = `${Math.max(16, k.width/32)}px Nunito, sans-serif`;
-  bulgular.forEach(b=>{
-    const [x,y,w,h] = b.bbox;
-    const vurgu = hedef && b.class === hedef;
-    c.strokeStyle = vurgu ? "#5FD9A8" : "#FFC24B";
-    c.strokeRect(x,y,w,h);
-    const yazi = `${tr(b.class)} · ${b.class} %${Math.round(b.score*100)}`;
-    c.save();
-    c.scale(-1,1); // görüntü aynalandığı için yazıyı düzeltiyoruz
-    const gx = -(x+w);
-    c.fillStyle = vurgu ? "#5FD9A8" : "#FFC24B";
-    const gen = c.measureText(yazi).width + 14;
-    c.fillRect(gx, Math.max(0,y-30), gen, 28);
-    c.fillStyle = "#0E2A38";
-    c.fillText(yazi, gx+7, Math.max(20,y-10));
-    c.restore();
-  });
-}
-
-function etiketleriYaz(bulgular){
-  const kutu = E("gorulen");
-  kutu.innerHTML = "";
-  const gorulenler = [...new Set(bulgular.map(b=>b.class))];
-  if (!gorulenler.length){
-    kutu.innerHTML = `<span class="etiket" style="opacity:.6">Şu an bir şey göremiyorum</span>`;
-    return;
-  }
-  gorulenler.forEach(sinif=>{
-    const en = bulgular.filter(b=>b.class===sinif).sort((a,b)=>b.score-a.score)[0];
+function tahminleriYaz(tahminler){
+  const kutu = E("gorulen"); kutu.innerHTML = "";
+  tahminler.slice(0,ILK_KAC).forEach((t,i)=>{
+    const tr = turkcesi(t.className);
     kutu.insertAdjacentHTML("beforeend",
-      `<span class="etiket"><b>${tr(sinif)}</b> <i>${sinif} · %${Math.round(en.score*100)}</i></span>`);
+      `<div class="satir${i===0?" ilk":""}">
+         <b>${tr ? tr : t.className}</b>
+         <i>${t.className}</i>
+         <span>%${Math.round(t.probability*100)}</span>
+       </div>`);
   });
 }
 
-/* ===================== döngü ===================== */
+function eslesti(tahminler){
+  return tahminler.slice(0,ILK_KAC).some(t =>
+    t.probability >= ESIK &&
+    esParcalar(t.className).some(p =>
+      hedef.etiket.some(e => p.toLowerCase() === e.toLowerCase())
+    )
+  );
+}
+
 async function dongu(){
   if (!calisiyor) return;
-  const bulgular = (await model.detect(E("video"), 12)).filter(b=>b.score >= 0.45);
-  ciz(bulgular);
-  etiketleriYaz(bulgular);
-
-  if (mod === "yaris" && hedef){
-    const tam = bulgular.some(b=>b.class===hedef && b.score>=ESIK);
-    ustUste = tam ? ustUste+1 : 0;
+  let tahminler = [];
+  try { tahminler = await model.classify(E("video"), 5); } catch(e){}
+  tahminleriYaz(tahminler);
+  if (mod==="yaris" && hedef){
+    ustUste = eslesti(tahminler) ? ustUste+1 : 0;
     if (ustUste >= ONAY_KARE) bulundu();
   }
   requestAnimationFrame(dongu);
 }
 
-/* ===================== yarış ===================== */
 function yeniKomut(){
-  const kalanlar = HAVUZ.filter(s => !bulunanlar.includes(s) && s !== hedef);
-  hedef = (kalanlar.length ? kalanlar : HAVUZ)[Math.floor(Math.random() * (kalanlar.length || HAVUZ.length))];
+  const kalanlar = HAVUZ.filter(n => !bulunanlar.includes(n.ad) && n !== hedef);
+  const liste = kalanlar.length ? kalanlar : HAVUZ;
+  hedef = liste[Math.floor(Math.random()*liste.length)];
   ustUste = 0;
-  E("komut").innerHTML = `Makineye bir <span style="color:var(--nane)">${tr(hedef)}</span> göster <em>${hedef}</em>`;
+  E("komut").innerHTML = `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`;
 }
-
 function bindir(metin){
-  const b = E("bindirme");
-  b.textContent = metin;
-  b.classList.add("gorun");
+  const b = E("bindirme"); b.textContent = metin; b.classList.add("gorun");
   setTimeout(()=>b.classList.remove("gorun"), 700);
 }
-
 function bulundu(){
-  puan++; bulunanlar.push(hedef);
+  puan++; bulunanlar.push(hedef.ad);
   E("puan").firstChild.textContent = puan;
-  bindir(`${tr(hedef)} ✓`);
+  bindir(`${hedef.ad} ✓`);
   yeniKomut();
 }
-
 function sayacBaslat(){
-  kalan = TUR_SURE;
-  E("sayac").firstChild.textContent = kalan;
+  kalan = TUR_SURE; E("sayac").firstChild.textContent = kalan;
   sayacId = setInterval(()=>{
-    kalan--;
-    E("sayac").firstChild.textContent = kalan;
-    if (kalan <= 0) turuBitir();
-  }, 1000);
+    kalan--; E("sayac").firstChild.textContent = kalan;
+    if (kalan<=0) turuBitir();
+  },1000);
 }
 
-/* ===================== akış ===================== */
 async function basla(secilen){
   mod = secilen;
-  E("acilis").style.display = "none";
-  E("bitis").style.display = "none";
-  E("sahne").style.display = "flex";
-  E("sayac").hidden = mod !== "yaris";
-  E("puan").hidden  = mod !== "yaris";
-  E("btnAtla").hidden = mod !== "yaris";
-
-  try{
-    await modeliYukle();
-    await kamerayiAc();
-  }catch(e){
-    E("sahne").style.display = "none";
-    E("acilis").style.display = "block";
+  E("acilis").style.display="none"; E("bitis").style.display="none";
+  E("sahne").style.display="flex";
+  E("sayac").hidden = mod!=="yaris"; E("puan").hidden = mod!=="yaris"; E("btnAtla").hidden = mod!=="yaris";
+  try{ await modeliYukle(); await kamerayiAc(); }
+  catch(e){
+    E("sahne").style.display="none"; E("acilis").style.display="block";
     E("durum").textContent = "Kamera açılamadı. Tarayıcıya kamera izni verin ve sayfayı yenileyin.";
     return;
   }
-
   calisiyor = true;
-  if (mod === "yaris"){
-    puan = 0; bulunanlar = [];
-    E("puan").firstChild.textContent = 0;
-    yeniKomut();
-    sayacBaslat();
+  if (mod==="yaris"){
+    puan=0; bulunanlar=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
   } else {
-    hedef = null;
-    E("komut").innerHTML = `Bir nesne göster <em>makine ne diyor?</em>`;
+    hedef=null; E("komut").textContent = "Bir nesne göster, makine ne diyor?";
   }
   dongu();
 }
 
 function turuBitir(){
-  calisiyor = false;
-  clearInterval(sayacId);
-  kamerayiKapat();
-  E("sahne").style.display = "none";
-
-  if (mod === "yaris"){
-    tablo.push({ oyuncu, puan });
+  calisiyor=false; clearInterval(sayacId); kamerayiKapat();
+  E("sahne").style.display="none";
+  if (mod==="yaris"){
+    tablo.push({oyuncu,puan});
     E("sonPuan").textContent = puan;
-    E("sonListe").innerHTML = bulunanlar.map(s=>`<li>${tr(s)} <span style="opacity:.5">${s}</span></li>`).join("");
+    E("sonListe").innerHTML = bulunanlar.map(a=>`<li>${a}</li>`).join("");
     E("tablo").innerHTML = tablo.map(t=>`<div><span>Oyuncu ${t.oyuncu}</span><b>${t.puan}</b></div>`).join("");
-    E("btnSira").hidden = false;
-    E("bitis").style.display = "block";
+    E("bitis").style.display="block";
   } else {
-    E("acilis").style.display = "block";
+    E("acilis").style.display="block";
   }
 }
 
@@ -368,4 +323,3 @@ E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").styl
 </script>
 </body>
 </html>
-
