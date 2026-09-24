@@ -218,7 +218,7 @@ async function modeliYukle(){
     tf.env().set("WEBGL_PACK_DEPTHWISECONV", false);
     await tf.ready();
   }catch(e){}
-  model = await mobilenet.load({ version:2, alpha:1.0 });
+  model = await mobilenet.load({ version:1, alpha:1.0 });
   E("durum").textContent = "";
   return model;
 }
