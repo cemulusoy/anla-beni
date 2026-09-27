@@ -10,7 +10,7 @@
 <style>
   :root{
     --deniz:#0E2A38; --deniz-acik:#15394B; --kehribar:#FFC24B;
-    --nane:#5FD9A8; --krem:#F3EFE3; --radius:18px;
+    --nane:#5FD9A8; --mercan:#FF9E7A; --krem:#F3EFE3; --radius:18px;
     padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
     box-sizing:border-box;
   }
@@ -61,6 +61,7 @@
   button.dugme{font:inherit;font-weight:700;cursor:pointer;border:none;border-radius:12px;
                padding:12px 20px;background:var(--kehribar);color:#1B1200}
   button.dugme.sessiz{background:transparent;color:var(--krem);border:2px solid rgba(243,239,227,.25)}
+  button.dugme.gec{background:var(--mercan);color:#2A0C06;font-size:19px;padding:16px 26px;flex:1;min-width:220px}
   button.dugme:focus-visible,.secim:focus-visible{outline:3px solid var(--nane);outline-offset:2px}
 
   #bitis{display:none}
@@ -108,7 +109,7 @@
     </div>
     <div class="gorulen" id="gorulen"></div>
     <div class="alt">
-      <button class="dugme sessiz" id="btnAtla" hidden>Bunu bulamadım</button>
+      <button class="dugme gec" id="btnAtla" hidden>Geç · 1 puan gider</button>
       <button class="dugme sessiz" id="btnBitir">Bitir</button>
     </div>
   </section>
@@ -140,7 +141,6 @@ const HAVUZ = [
   { ad:"tencere",          etiket:["Dutch oven","caldron","cauldron"] },
   { ad:"tava",             etiket:["frying pan","frypan","wok","skillet"] },
   { ad:"kepçe",            etiket:["ladle"] },
-  { ad:"tabak",            etiket:["plate"] },
   { ad:"kupa",             etiket:["coffee mug"] },
   { ad:"fincan",           etiket:["cup"] },
   { ad:"bardak",           etiket:["beer glass","goblet","water jug","measuring cup"] },
@@ -148,7 +148,6 @@ const HAVUZ = [
   { ad:"mikrodalga fırın", etiket:["microwave","microwave oven"] },
   { ad:"buzdolabı",        etiket:["refrigerator","icebox"] },
   { ad:"ütü",              etiket:["iron","smoothing iron"] },
-  { ad:"saç kurutma makinesi", etiket:["hand blower","blow dryer","hair dryer","hair drier"] },
   { ad:"dikiş makinesi",   etiket:["sewing machine"] },
   { ad:"vantilatör",       etiket:["electric fan","blower"] },
   { ad:"mum",              etiket:["candle","taper","wax light"] },
@@ -197,7 +196,7 @@ const TR = {
 const E = id => document.getElementById(id);
 let model, akis, mod=null, calisiyor=false;
 let hedef=null, puan=0, kalan=TUR_SURE, sayacId=null;
-let ustUste=0, bulunanlar=[], oyuncu=1, tablo=[];
+let ustUste=0, bulunanlar=[], gecilenler=[], oyuncu=1, tablo=[];
 
 const esParcalar = ad => ad.split(",").map(s=>s.trim());
 const turkcesi = ad => { for (const p of esParcalar(ad)) if (TR[p]) return TR[p]; return null; };
@@ -273,6 +272,15 @@ function bulundu(){
   bindir(`${hedef.ad} ✓`);
   yeniKomut();
 }
+/* Tanıtamadığın nesneyi geçebilirsin, bedeli bir puan. */
+function gecildi(){
+  if (!hedef || mod!=="yaris") return;
+  puan--;
+  E("puan").firstChild.textContent = puan;
+  gecilenler.push(hedef.ad);
+  bindir("geçildi · −1");
+  yeniKomut();
+}
 function sayacBaslat(){
   kalan = TUR_SURE; E("sayac").firstChild.textContent = kalan;
   sayacId = setInterval(()=>{
@@ -294,7 +302,7 @@ async function basla(secilen){
   }
   calisiyor = true;
   if (mod==="yaris"){
-    puan=0; bulunanlar=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
+    puan=0; bulunanlar=[]; gecilenler=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
   } else {
     hedef=null; E("komut").textContent = "Bir nesne göster, makine ne diyor?";
   }
@@ -307,7 +315,9 @@ function turuBitir(){
   if (mod==="yaris"){
     tablo.push({oyuncu,puan});
     E("sonPuan").textContent = puan;
-    E("sonListe").innerHTML = bulunanlar.map(a=>`<li>${a}</li>`).join("");
+    E("sonListe").innerHTML =
+      bulunanlar.map(a=>`<li>${a}</li>`).join("") +
+      gecilenler.map(a=>`<li style="opacity:.55">${a} — geçildi</li>`).join("");
     E("tablo").innerHTML = tablo.map(t=>`<div><span>Oyuncu ${t.oyuncu}</span><b>${t.puan}</b></div>`).join("");
     E("bitis").style.display="block";
   } else {
@@ -318,7 +328,7 @@ function turuBitir(){
 E("btnDeneme").onclick = ()=>basla("deneme");
 E("btnYaris").onclick  = ()=>basla("yaris");
 E("btnBitir").onclick  = turuBitir;
-E("btnAtla").onclick   = ()=>{ bindir("atlandı"); yeniKomut(); };
+E("btnAtla").onclick   = gecildi;
 E("btnSira").onclick   = ()=>{ oyuncu++; basla("yaris"); };
 E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").style.display="block"; };
 </script>
