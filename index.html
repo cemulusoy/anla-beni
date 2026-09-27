@@ -36,6 +36,23 @@
   .secim span{opacity:.8;font-size:15px}
 
   #sahne{display:none;flex:1;flex-direction:column;gap:12px}
+  #sahne.acik{display:flex}
+  /* Geniş ekran: kamera solda, tahminler sağda — kayıt için 16:9 kareyi doldurur */
+  @media (min-width:900px) and (orientation:landscape){
+    .sarma{width:min(1560px,100%);height:100vh;overflow:hidden}
+    #sahne.acik{
+      display:grid; gap:14px 20px;
+      grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);
+      grid-template-rows:auto minmax(0,1fr) auto;
+      grid-template-areas:"ust ust" "ekran gorulen" "ekran alt";
+    }
+    #sahne.acik .ust{grid-area:ust}
+    #sahne.acik .ekran{grid-area:ekran;aspect-ratio:auto;height:100%}
+    #sahne.acik .gorulen{grid-area:gorulen;align-content:start}
+    #sahne.acik .alt{grid-area:alt;align-self:end}
+    #sahne.acik .satir{font-size:19px;padding:11px 18px}
+    #sahne.acik .satir.ilk b{font-size:24px}
+  }
   .ust{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .komut{font-size:24px;color:var(--kehribar);flex:1;min-width:220px}
   .komut em{font-style:normal;opacity:.5;font-size:16px;font-family:"Nunito",sans-serif;font-weight:700}
@@ -82,7 +99,7 @@
 
   <section id="acilis" class="kart">
     <h2>Makine ne görüyor?</h2>
-    <p>Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey telefonun içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.</p>
+    <p>Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey cihazın içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.</p>
     <div class="secimler">
       <button class="secim" id="btnDeneme">
         <strong>Deneme modu</strong>
@@ -292,11 +309,11 @@ function sayacBaslat(){
 async function basla(secilen){
   mod = secilen;
   E("acilis").style.display="none"; E("bitis").style.display="none";
-  E("sahne").style.display="flex";
+  E("sahne").classList.add("acik");
   E("sayac").hidden = mod!=="yaris"; E("puan").hidden = mod!=="yaris"; E("btnAtla").hidden = mod!=="yaris";
   try{ await modeliYukle(); await kamerayiAc(); }
   catch(e){
-    E("sahne").style.display="none"; E("acilis").style.display="block";
+    E("sahne").classList.remove("acik"); E("acilis").style.display="block";
     E("durum").textContent = "Kamera açılamadı. Tarayıcıya kamera izni verin ve sayfayı yenileyin.";
     return;
   }
@@ -311,7 +328,7 @@ async function basla(secilen){
 
 function turuBitir(){
   calisiyor=false; clearInterval(sayacId); kamerayiKapat();
-  E("sahne").style.display="none";
+  E("sahne").classList.remove("acik");
   if (mod==="yaris"){
     tablo.push({oyuncu,puan});
     E("sonPuan").textContent = puan;
