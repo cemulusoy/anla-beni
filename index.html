@@ -245,7 +245,7 @@ function tahminleriYaz(tahminler){
     kutu.insertAdjacentHTML("beforeend",
       `<div class="satir${i===0?" ilk":""}">
          <b>${tr ? tr : t.className}</b>
-         <i>${t.className}</i>
+         <i>${tr ? t.className : ""}</i>
          <span>%${Math.round(t.probability*100)}</span>
        </div>`);
   });
