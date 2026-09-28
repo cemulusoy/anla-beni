@@ -87,6 +87,19 @@
   .sira{margin-top:16px;border-top:1px solid rgba(243,239,227,.15);padding-top:12px}
   .sira div{display:flex;justify-content:space-between;max-width:320px;padding:4px 0}
   .durum{opacity:.7;font-size:15px}
+  .kendi{margin-top:18px;border-top:1px solid rgba(243,239,227,.16);padding-top:18px}
+  .kendi strong{display:block;font-family:"Baloo 2",sans-serif;font-size:20px;color:var(--nane);margin-bottom:4px}
+  .kendi p{margin:0 0 12px;opacity:.8;font-size:15px;max-width:62ch}
+  .satirli{display:flex;gap:10px;flex-wrap:wrap}
+  .satirli input{
+    flex:1;min-width:240px;font:inherit;font-size:16px;padding:12px 14px;border-radius:12px;
+    border:2px solid rgba(243,239,227,.22);background:var(--deniz);color:var(--krem);
+  }
+  .satirli input:focus-visible{outline:none;border-color:var(--nane)}
+  .rozet-model{
+    display:inline-block;background:var(--nane);color:#093022;font-weight:700;
+    font-size:14px;padding:5px 12px;border-radius:999px;margin-left:10px;vertical-align:2px;
+  }
   @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -110,6 +123,18 @@
         <span>Ekranın istediği nesneyi bulup gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.</span>
       </button>
     </div>
+
+    <div class="kendi">
+      <strong>Kendi modelinle oyna</strong>
+      <p>Teachable Machine'de eğittiğin modelin bağlantısını buraya yapıştır. Oyun artık senin öğrettiğin hareketleri ister.</p>
+      <div class="satirli">
+        <input id="modelLink" type="url" inputmode="url" spellcheck="false"
+               placeholder="https://teachablemachine.withgoogle.com/models/...">
+        <button class="dugme" id="btnModel">Bağla</button>
+      </div>
+      <p class="durum" id="modelDurum"></p>
+    </div>
+
     <p class="durum" id="durum" style="margin-top:16px"></p>
   </section>
 
@@ -212,6 +237,10 @@ const TR = {
 
 const E = id => document.getElementById(id);
 let model, akis, mod=null, calisiyor=false;
+/* kaynak: "nesne" = gömülü hazır model, "kendi" = çocuğun Teachable Machine modeli */
+let kaynak="nesne", kendiModel=null, kendiSiniflar=[], kendiHavuz=[];
+const BOS_ADLAR = ["hiçbiri","hicbiri","hiç biri","boş","bos","yok","none","background","nothing","idle"];
+const ESIK_KENDI = 0.75;
 let hedef=null, puan=0, kalan=TUR_SURE, sayacId=null;
 let ustUste=0, bulunanlar=[], gecilenler=[], oyuncu=1, tablo=[];
 
@@ -219,6 +248,7 @@ const esParcalar = ad => ad.split(",").map(s=>s.trim());
 const turkcesi = ad => { for (const p of esParcalar(ad)) if (TR[p]) return TR[p]; return null; };
 
 async function modeliYukle(){
+  if (kaynak === "kendi") return kendiModel;   // çocuğun modeli zaten yüklü
   if (model) return model;
   E("durum").textContent = "Model yükleniyor, ilk açılışta biraz sürer…";
   // Android ekran kartlarında yarım hassasiyet MobileNet v2'yi bozuyor:
@@ -232,6 +262,47 @@ async function modeliYukle(){
   E("durum").textContent = "";
   return model;
 }
+/* ---- Teachable Machine görüntü modeli ----
+   TM'in verdiği adres altında model.json ve metadata.json duruyor.
+   Kütüphane yüklemeden doğrudan okuyoruz; girdi 224x224, [-1,1] aralığına çekiliyor. */
+function temizleLink(l){
+  l = (l||"").trim();
+  if (!l) return "";
+  l = l.split("?")[0].split("#")[0];
+  if (!l.endsWith("/")) l += "/";
+  return l;
+}
+async function kendiModeliBagla(link){
+  const taban = temizleLink(link);
+  if (!/^https:\/\/teachablemachine\.withgoogle\.com\/models\//.test(taban))
+    throw new Error("Bu bir Teachable Machine bağlantısı değil.");
+  const meta = await fetch(taban+"metadata.json").then(r=>{
+    if (!r.ok) throw new Error("Bağlantı açılamadı. Modeli 'Yükle' ile paylaştığından emin ol.");
+    return r.json();
+  });
+  const m = await tf.loadLayersModel(taban+"model.json");
+  kendiModel = m;
+  kendiSiniflar = meta.labels || [];
+  kendiHavuz = kendiSiniflar
+    .filter(s => !BOS_ADLAR.includes(s.trim().toLocaleLowerCase("tr")))
+    .map(s => ({ ad:s, etiket:[s] }));
+  if (kendiHavuz.length < 2) throw new Error("Modelde en az iki hareket olmalı.");
+  kaynak = "kendi";
+  try{ localStorage.setItem("anlabeni-model", taban); }catch(e){}
+  return kendiHavuz;
+}
+function kendiTahmin(){
+  return tf.tidy(()=>{
+    const kare = tf.browser.fromPixels(E("video"))
+      .resizeBilinear([224,224]).toFloat().div(127.5).sub(1).expandDims(0);
+    const cikti = kendiModel.predict(kare);
+    const p = cikti.dataSync();
+    return kendiSiniflar
+      .map((ad,i)=>({ className:ad, probability:p[i] }))
+      .sort((a,b)=>b.probability-a.probability);
+  });
+}
+
 async function kamerayiAc(){
   akis = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:640} }, audio:false });
   const v = E("video"); v.srcObject = akis; await v.play();
@@ -252,6 +323,10 @@ function tahminleriYaz(tahminler){
 }
 
 function eslesti(tahminler){
+  if (kaynak === "kendi"){
+    const en = tahminler[0];
+    return en && en.probability >= ESIK_KENDI && en.className === hedef.ad;
+  }
   return tahminler.slice(0,ILK_KAC).some(t =>
     t.probability >= ESIK &&
     esParcalar(t.className).some(p =>
@@ -263,7 +338,9 @@ function eslesti(tahminler){
 async function dongu(){
   if (!calisiyor) return;
   let tahminler = [];
-  try { tahminler = await model.classify(E("video"), 5); } catch(e){}
+  try {
+    tahminler = (kaynak === "kendi") ? kendiTahmin() : await model.classify(E("video"), 5);
+  } catch(e){}
   tahminleriYaz(tahminler);
   if (mod==="yaris" && hedef){
     ustUste = eslesti(tahminler) ? ustUste+1 : 0;
@@ -272,12 +349,17 @@ async function dongu(){
   requestAnimationFrame(dongu);
 }
 
+const havuz = () => (kaynak === "kendi") ? kendiHavuz : HAVUZ;
+
 function yeniKomut(){
-  const kalanlar = HAVUZ.filter(n => !bulunanlar.includes(n.ad) && n !== hedef);
-  const liste = kalanlar.length ? kalanlar : HAVUZ;
+  const h = havuz();
+  const kalanlar = h.filter(n => !bulunanlar.includes(n.ad) && n !== hedef);
+  const liste = kalanlar.length ? kalanlar : h;
   hedef = liste[Math.floor(Math.random()*liste.length)];
   ustUste = 0;
-  E("komut").innerHTML = `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`;
+  E("komut").innerHTML = (kaynak === "kendi")
+    ? `Şunu yap: <span style="color:var(--nane)">${hedef.ad}</span>`
+    : `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`;
 }
 function bindir(metin){
   const b = E("bindirme"); b.textContent = metin; b.classList.add("gorun");
@@ -321,7 +403,10 @@ async function basla(secilen){
   if (mod==="yaris"){
     puan=0; bulunanlar=[]; gecilenler=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
   } else {
-    hedef=null; E("komut").textContent = "Bir nesne göster, makine ne diyor?";
+    hedef=null;
+    E("komut").textContent = (kaynak === "kendi")
+      ? "Bir hareket yap, model ne diyor?"
+      : "Bir nesne göster, makine ne diyor?";
   }
   dongu();
 }
@@ -348,6 +433,34 @@ E("btnBitir").onclick  = turuBitir;
 E("btnAtla").onclick   = gecildi;
 E("btnSira").onclick   = ()=>{ oyuncu++; basla("yaris"); };
 E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").style.display="block"; };
+
+/* ---- kendi modelini bağlama ---- */
+function modelBagliYaz(){
+  E("modelDurum").innerHTML =
+    `Bağlandı: <b style="color:var(--nane)">${kendiHavuz.map(h=>h.ad).join(", ")}</b>`;
+  E("acilis").querySelector("h2").innerHTML =
+    `Kendi modelin çalışıyor <span class="rozet-model">senin modelin</span>`;
+  E("btnDeneme").querySelector("span").textContent =
+    "Hareketleri tek tek yap, modelin ne dediğini gör. Kartı burada doldur.";
+  E("btnYaris").querySelector("span").textContent =
+    "Ekranın istediği hareketi yap. Süre bitince puanın kaç hareket tanıttığındır.";
+}
+async function modelBagla(link, sessiz){
+  if (!sessiz) E("modelDurum").textContent = "Model yükleniyor…";
+  try{
+    await kendiModeliBagla(link);
+    modelBagliYaz();
+  }catch(e){
+    kaynak = "nesne";
+    E("modelDurum").textContent = sessiz ? "" : (e.message || "Model yüklenemedi.");
+  }
+}
+E("btnModel").onclick = ()=> modelBagla(E("modelLink").value, false);
+E("modelLink").addEventListener("keydown", ev=>{ if (ev.key === "Enter") E("btnModel").click(); });
+try{
+  const kayitli = localStorage.getItem("anlabeni-model");
+  if (kayitli){ E("modelLink").value = kayitli; modelBagla(kayitli, true); }
+}catch(e){}
 </script>
 </body>
 </html>
