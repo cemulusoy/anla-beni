@@ -87,6 +87,30 @@
   .sira{margin-top:16px;border-top:1px solid rgba(243,239,227,.15);padding-top:12px}
   .sira div{display:flex;justify-content:space-between;max-width:320px;padding:4px 0}
   .durum{opacity:.7;font-size:15px}
+  .kumanda{display:flex;gap:10px;flex-wrap:wrap;margin:4px 0 18px}
+  .kchip{
+    font:inherit;font-weight:700;font-size:16px;cursor:pointer;border-radius:999px;
+    padding:11px 20px;background:transparent;color:var(--krem);
+    border:2px solid rgba(243,239,227,.25);
+  }
+  .kchip.secili{background:var(--kehribar);color:#1B1200;border-color:var(--kehribar)}
+  .kchip:focus-visible{outline:3px solid var(--nane);outline-offset:2px}
+
+  .dinleme{position:absolute;inset:0;display:flex;flex-direction:column;
+           align-items:center;justify-content:center;gap:28px;background:var(--deniz-acik)}
+  .dalga{display:flex;align-items:center;gap:10px;height:90px}
+  .dalga span{width:12px;border-radius:999px;background:var(--nane);height:22px;
+              animation:dalgalan 1s ease-in-out infinite}
+  .dalga span:nth-child(2){animation-delay:.12s}
+  .dalga span:nth-child(3){animation-delay:.24s}
+  .dalga span:nth-child(4){animation-delay:.36s}
+  .dalga span:nth-child(5){animation-delay:.48s}
+  @keyframes dalgalan{0%,100%{height:22px;opacity:.55}50%{height:76px;opacity:1}}
+  .duyulan{font-family:"Baloo 2",sans-serif;font-size:34px;color:var(--krem);
+           text-align:center;padding:0 24px;max-width:90%}
+  .duyulan.bos{opacity:.45;font-size:24px}
+  @media (prefers-reduced-motion:reduce){.dalga span{animation:none;height:48px}}
+
   .kendi{margin-top:18px;border-top:1px solid rgba(243,239,227,.16);padding-top:18px}
   .kendi strong{display:block;font-family:"Baloo 2",sans-serif;font-size:20px;color:var(--nane);margin-bottom:4px}
   .kendi p{margin:0 0 12px;opacity:.8;font-size:15px;max-width:62ch}
@@ -111,8 +135,15 @@
   </header>
 
   <section id="acilis" class="kart">
-    <h2>Makine ne görüyor?</h2>
-    <p>Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey cihazın içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.</p>
+    <h2>Makine ne anlıyor?</h2>
+    <p id="girisMetin">Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey cihazın içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.</p>
+
+    <div class="kumanda">
+      <button class="kchip secili" data-kaynak="nesne">Nesne göster</button>
+      <button class="kchip" data-kaynak="kendi">Hareket yap</button>
+      <button class="kchip" data-kaynak="ses">Kelime söyle</button>
+    </div>
+
     <div class="secimler">
       <button class="secim" id="btnDeneme">
         <strong>Deneme modu</strong>
@@ -124,7 +155,7 @@
       </button>
     </div>
 
-    <div class="kendi">
+    <div class="kendi" id="kendiKutu" hidden>
       <strong>Kendi modelinle oyna</strong>
       <p>Teachable Machine'de eğittiğin modelin bağlantısını buraya yapıştır. Oyun artık senin öğrettiğin hareketleri ister.</p>
       <div class="satirli">
@@ -147,6 +178,10 @@
     <div class="ekran">
       <video id="video" playsinline muted></video>
       <div class="nisan"></div>
+      <div class="dinleme" id="dinleme" hidden>
+        <div class="dalga"><span></span><span></span><span></span><span></span><span></span></div>
+        <div class="duyulan" id="duyulan">dinliyorum…</div>
+      </div>
       <div class="bindirme" id="bindirme"></div>
     </div>
     <div class="gorulen" id="gorulen"></div>
@@ -235,10 +270,36 @@ const TR = {
   "dishwasher":"bulaşık makinesi","stove":"ocak","oven":"fırın","sewing machine":"dikiş makinesi"
 };
 
+/* Ses havuzu — kolay kelimelerle makinenin zorlandığı kelimeler karışık.
+   Zor olanlar kasten burada: kartın "makine ne duydu" sütununu onlar dolduruyor. */
+const SES_HAVUZ = [
+  { ad:"kalem",      etiket:["kalem"] },
+  { ad:"kitap",      etiket:["kitap"] },
+  { ad:"pencere",    etiket:["pencere"] },
+  { ad:"bardak",     etiket:["bardak"] },
+  { ad:"portakal",   etiket:["portakal"] },
+  { ad:"çaydanlık",  etiket:["çaydanlık","çay danlık"] },
+  { ad:"yağmur",     etiket:["yağmur"] },
+  { ad:"şemsiye",    etiket:["şemsiye"] },
+  { ad:"uçurtma",    etiket:["uçurtma"] },
+  { ad:"kaplumbağa", etiket:["kaplumbağa"] },
+  { ad:"gökyüzü",    etiket:["gökyüzü","gök yüzü"] },
+  { ad:"pekmez",     etiket:["pekmez","pek mez"] },
+  { ad:"zıpzıp",     etiket:["zıpzıp","zıp zıp"] },
+  { ad:"çilek",      etiket:["çilek"] },
+  { ad:"merdiven",   etiket:["merdiven"] },
+  { ad:"turuncu",    etiket:["turuncu"] },
+  { ad:"dondurma",   etiket:["dondurma"] },
+  { ad:"salıncak",   etiket:["salıncak","salincak"] },
+  { ad:"böcek",      etiket:["böcek"] },
+  { ad:"şimşek",     etiket:["şimşek"] }
+];
+
 const E = id => document.getElementById(id);
 let model, akis, mod=null, calisiyor=false;
 /* kaynak: "nesne" = gömülü hazır model, "kendi" = çocuğun Teachable Machine modeli */
 let kaynak="nesne", kendiModel=null, kendiSiniflar=[], kendiHavuz=[];
+let tanima=null, sonDuyulan="";
 const BOS_ADLAR = ["hiçbiri","hicbiri","hiç biri","boş","bos","yok","none","background","nothing","idle"];
 const ESIK_KENDI = 0.75;
 let hedef=null, puan=0, kalan=TUR_SURE, sayacId=null;
@@ -303,6 +364,60 @@ function kendiTahmin(){
   });
 }
 
+/* ---- Konuşma tanıma ----
+   Tarayıcının kendi özelliği. Ses Google'ın sunucusunda çözümleniyor;
+   bu, oyunda ve videoda çocuğa açıkça söyleniyor. */
+const sadelestir = s => (s||"")
+  .toLocaleLowerCase("tr").replace(/[.,!?;:"']/g,"").replace(/\s+/g," ").trim();
+
+function tanimaVarMi(){
+  return !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+}
+function tanimayiKur(){
+  const T = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!T) return null;
+  const t = new T();
+  t.lang = "tr-TR";
+  t.continuous = true;
+  t.interimResults = true;
+  t.maxAlternatives = 1;
+  t.onresult = ev => {
+    let metin = "";
+    for (let i = ev.resultIndex; i < ev.results.length; i++) metin += ev.results[i][0].transcript;
+    sonDuyulan = metin.trim();
+    duyulaniYaz(sonDuyulan);
+    if (mod === "yaris" && hedef && sesEslesti(sonDuyulan)) bulundu();
+  };
+  t.onerror = ev => {
+    if (ev.error === "not-allowed" || ev.error === "service-not-allowed")
+      duyulaniYaz("Mikrofon izni verilmedi", true);
+  };
+  t.onend = () => { if (calisiyor && kaynak === "ses") { try{ t.start(); }catch(e){} } };
+  return t;
+}
+function duyulaniYaz(metin, hata){
+  const d = E("duyulan");
+  if (!metin){ d.textContent = "dinliyorum…"; d.classList.add("bos"); return; }
+  d.classList.toggle("bos", !!hata);
+  d.textContent = metin;
+}
+function sesEslesti(metin){
+  const m = sadelestir(metin);
+  if (!m) return false;
+  return hedef.etiket.some(e => m.includes(sadelestir(e)));
+}
+function sesiBaslat(){
+  if (!tanima) tanima = tanimayiKur();
+  if (!tanima) return false;
+  sonDuyulan = ""; duyulaniYaz("");
+  try{ tanima.start(); }catch(e){}
+  return true;
+}
+function sesiDurdur(){
+  if (!tanima) return;
+  try{ tanima.stop(); }catch(e){}
+}
+
 async function kamerayiAc(){
   akis = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"environment", width:{ideal:640} }, audio:false });
   const v = E("video"); v.srcObject = akis; await v.play();
@@ -349,7 +464,9 @@ async function dongu(){
   requestAnimationFrame(dongu);
 }
 
-const havuz = () => (kaynak === "kendi") ? kendiHavuz : HAVUZ;
+const havuz = () =>
+  kaynak === "kendi" ? kendiHavuz :
+  kaynak === "ses"   ? SES_HAVUZ  : HAVUZ;
 
 function yeniKomut(){
   const h = havuz();
@@ -357,9 +474,13 @@ function yeniKomut(){
   const liste = kalanlar.length ? kalanlar : h;
   hedef = liste[Math.floor(Math.random()*liste.length)];
   ustUste = 0;
-  E("komut").innerHTML = (kaynak === "kendi")
-    ? `Şunu yap: <span style="color:var(--nane)">${hedef.ad}</span>`
-    : `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`;
+  if (kaynak === "ses"){ sonDuyulan = ""; duyulaniYaz(""); }
+  const kalip = {
+    kendi: `Şunu yap: <span style="color:var(--nane)">${hedef.ad}</span>`,
+    ses:   `Şu kelimeyi söyle: <span style="color:var(--nane)">${hedef.ad}</span>`,
+    nesne: `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`
+  };
+  E("komut").innerHTML = kalip[kaynak];
 }
 function bindir(metin){
   const b = E("bindirme"); b.textContent = metin; b.classList.add("gorun");
@@ -393,26 +514,41 @@ async function basla(secilen){
   E("acilis").style.display="none"; E("bitis").style.display="none";
   E("sahne").classList.add("acik");
   E("sayac").hidden = mod!=="yaris"; E("puan").hidden = mod!=="yaris"; E("btnAtla").hidden = mod!=="yaris";
-  try{ await modeliYukle(); await kamerayiAc(); }
-  catch(e){
-    E("sahne").classList.remove("acik"); E("acilis").style.display="block";
-    E("durum").textContent = "Kamera açılamadı. Tarayıcıya kamera izni verin ve sayfayı yenileyin.";
-    return;
+  E("dinleme").hidden = kaynak!=="ses";
+  E("gorulen").hidden = kaynak==="ses";
+  E("video").hidden   = kaynak==="ses";
+  document.querySelector(".nisan").hidden = kaynak==="ses";
+
+  if (kaynak === "ses"){
+    if (!sesiBaslat()){
+      E("sahne").classList.remove("acik"); E("acilis").style.display="block";
+      E("durum").textContent = "Bu tarayıcı konuşma tanımayı desteklemiyor. Chrome ile deneyin.";
+      return;
+    }
+  } else {
+    try{ await modeliYukle(); await kamerayiAc(); }
+    catch(e){
+      E("sahne").classList.remove("acik"); E("acilis").style.display="block";
+      E("durum").textContent = "Kamera açılamadı. Tarayıcıya kamera izni verin ve sayfayı yenileyin.";
+      return;
+    }
   }
+
   calisiyor = true;
   if (mod==="yaris"){
     puan=0; bulunanlar=[]; gecilenler=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
   } else {
     hedef=null;
-    E("komut").textContent = (kaynak === "kendi")
-      ? "Bir hareket yap, model ne diyor?"
-      : "Bir nesne göster, makine ne diyor?";
+    E("komut").textContent =
+      kaynak === "kendi" ? "Bir hareket yap, model ne diyor?" :
+      kaynak === "ses"   ? "Bir kelime söyle, makine ne duyuyor?" :
+                           "Bir nesne göster, makine ne diyor?";
   }
-  dongu();
+  if (kaynak !== "ses") dongu();
 }
 
 function turuBitir(){
-  calisiyor=false; clearInterval(sayacId); kamerayiKapat();
+  calisiyor=false; clearInterval(sayacId); kamerayiKapat(); sesiDurdur();
   E("sahne").classList.remove("acik");
   if (mod==="yaris"){
     tablo.push({oyuncu,puan});
@@ -434,16 +570,43 @@ E("btnAtla").onclick   = gecildi;
 E("btnSira").onclick   = ()=>{ oyuncu++; basla("yaris"); };
 E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").style.display="block"; };
 
+/* ---- kumanda seçimi: nesne / hareket / ses ---- */
+const GIRIS_METIN = {
+  nesne: "Bu oyun kameraya bakar ve gördüğü şeyin ne olduğunu tahmin eder. Görüntü hiçbir yere gitmez, her şey cihazın içinde olur. Nesneyi kameraya yaklaştır, ekrandaki çerçeveyi doldursun.",
+  kendi: "Bu oyun senin eğittiğin modele bakar. Görüntü hiçbir yere gitmez, her şey cihazın içinde olur. Hareketi yaparken kameradan boydan görün.",
+  ses:   "Bu oyun seni dinler ve söylediğin kelimeyi yazıya döker. Dikkat: kamera cihazının içinde çalışıyordu, ama konuşma tanıma öyle değil — sesin çözümlenmek üzere Google'ın bilgisayarlarına gidiyor. Bazı yapay zekâlar senin cihazında, bazıları uzaktaki bilgisayarlarda çalışır."
+};
+const DENEME_METIN = {
+  nesne: "Seçtiğiniz nesneleri tek tek gösterin, makinenin en iyi üç tahminini görün. Kartı burada doldurun.",
+  kendi: "Hareketleri tek tek yapın, modelin ne dediğini görün. Kartı burada doldurun.",
+  ses:   "Kelimeleri tek tek söyleyin, makinenin ne duyduğunu görün. Kartı burada doldurun."
+};
+const YARIS_METIN = {
+  nesne: "Ekranın istediği nesneyi bulup gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.",
+  kendi: "Ekranın istediği hareketi yapın. Süre bitince puanınız kaç hareket tanıttığınızdır.",
+  ses:   "Ekranın istediği kelimeyi söyleyin. Makine doğru duyarsa geçersiniz."
+};
+function kumandaSec(yeni){
+  if (yeni === "ses" && !tanimaVarMi()){
+    E("durum").textContent = "Bu tarayıcı konuşma tanımayı desteklemiyor. Chrome ile deneyin.";
+    return;
+  }
+  kaynak = yeni;
+  document.querySelectorAll(".kchip").forEach(d =>
+    d.classList.toggle("secili", d.dataset.kaynak === yeni));
+  E("kendiKutu").hidden = yeni !== "kendi";
+  E("girisMetin").textContent = GIRIS_METIN[yeni];
+  E("btnDeneme").querySelector("span").textContent = DENEME_METIN[yeni];
+  E("btnYaris").querySelector("span").textContent  = YARIS_METIN[yeni];
+  E("durum").textContent = "";
+}
+document.querySelectorAll(".kchip").forEach(d =>
+  d.onclick = () => kumandaSec(d.dataset.kaynak));
+
 /* ---- kendi modelini bağlama ---- */
 function modelBagliYaz(){
   E("modelDurum").innerHTML =
     `Bağlandı: <b style="color:var(--nane)">${kendiHavuz.map(h=>h.ad).join(", ")}</b>`;
-  E("acilis").querySelector("h2").innerHTML =
-    `Kendi modelin çalışıyor <span class="rozet-model">senin modelin</span>`;
-  E("btnDeneme").querySelector("span").textContent =
-    "Hareketleri tek tek yap, modelin ne dediğini gör. Kartı burada doldur.";
-  E("btnYaris").querySelector("span").textContent =
-    "Ekranın istediği hareketi yap. Süre bitince puanın kaç hareket tanıttığındır.";
 }
 async function modelBagla(link, sessiz){
   if (!sessiz) E("modelDurum").textContent = "Model yükleniyor…";
@@ -451,7 +614,6 @@ async function modelBagla(link, sessiz){
     await kendiModeliBagla(link);
     modelBagliYaz();
   }catch(e){
-    kaynak = "nesne";
     E("modelDurum").textContent = sessiz ? "" : (e.message || "Model yüklenemedi.");
   }
 }
@@ -461,6 +623,10 @@ try{
   const kayitli = localStorage.getItem("anlabeni-model");
   if (kayitli){ E("modelLink").value = kayitli; modelBagla(kayitli, true); }
 }catch(e){}
+
+/* açılışta kumanda metinlerini yerine koy */
+kumandaSec("nesne");
+if (!tanimaVarMi()) document.querySelector('.kchip[data-kaynak="ses"]').hidden = true;
 </script>
 </body>
 </html>
