@@ -56,6 +56,8 @@
   .ust{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
   .komut{font-size:24px;color:var(--kehribar);flex:1;min-width:220px}
   .komut em{font-style:normal;opacity:.5;font-size:16px;font-family:"Nunito",sans-serif;font-weight:700}
+  .komut small{display:block;margin-top:2px;font-size:15px;font-weight:700;opacity:.55;
+               font-family:"Nunito",sans-serif}
   .rakam{font-size:28px;min-width:86px;text-align:center}
   .rakam small{display:block;font-family:"Nunito",sans-serif;font-size:12px;font-weight:700;opacity:.6}
 
@@ -153,6 +155,10 @@
         <strong>Yarış · 180 saniye</strong>
         <span>Ekranın istediği nesneyi bulup gösterin. Süre bitince puanınız kaç nesne tanıttığınızdır.</span>
       </button>
+      <button class="secim" id="btnKandir">
+        <strong>Kandır · 180 saniye</strong>
+        <span>Ekranın istediği nesneyi makineye söyletin — ama gerçeğini göstermeden. Resmi, çizimi, oyuncağı serbest.</span>
+      </button>
     </div>
 
     <div class="kendi" id="kendiKutu" hidden>
@@ -194,7 +200,7 @@
   <section id="bitis" class="kart">
     <h2>Süre doldu</h2>
     <div class="puan" id="sonPuan">0</div>
-    <p style="opacity:.8;margin:6px 0 0">nesne tanıttınız</p>
+    <p id="sonMetin" style="opacity:.8;margin:6px 0 0">nesne tanıttınız</p>
     <ul id="sonListe"></ul>
     <button class="dugme" id="btnSira">Sıradaki oyuncu</button>
     <button class="dugme sessiz" id="btnBasa">Başa dön</button>
@@ -297,6 +303,8 @@ const SES_HAVUZ = [
 
 const E = id => document.getElementById(id);
 let model, akis, mod=null, calisiyor=false;
+/* yarış ve kandır aynı mekanikle çalışır: hedef, puan, sayaç */
+const yarisGibi = () => mod === "yaris" || mod === "kandir";
 /* kaynak: "nesne" = gömülü hazır model, "kendi" = çocuğun Teachable Machine modeli */
 let kaynak="nesne", kendiModel=null, kendiSiniflar=[], kendiHavuz=[];
 let tanima=null, sonDuyulan="";
@@ -386,7 +394,7 @@ function tanimayiKur(){
     for (let i = ev.resultIndex; i < ev.results.length; i++) metin += ev.results[i][0].transcript;
     sonDuyulan = metin.trim();
     duyulaniYaz(sonDuyulan);
-    if (mod === "yaris" && hedef && sesEslesti(sonDuyulan)) bulundu();
+    if (yarisGibi() && hedef && sesEslesti(sonDuyulan)) bulundu();
   };
   t.onerror = ev => {
     if (ev.error === "not-allowed" || ev.error === "service-not-allowed")
@@ -457,7 +465,7 @@ async function dongu(){
     tahminler = (kaynak === "kendi") ? kendiTahmin() : await model.classify(E("video"), 5);
   } catch(e){}
   tahminleriYaz(tahminler);
-  if (mod==="yaris" && hedef){
+  if (yarisGibi() && hedef){
     ustUste = eslesti(tahminler) ? ustUste+1 : 0;
     if (ustUste >= ONAY_KARE) bulundu();
   }
@@ -480,7 +488,12 @@ function yeniKomut(){
     ses:   `Şu kelimeyi söyle: <span style="color:var(--nane)">${hedef.ad}</span>`,
     nesne: `Makineye bir <span style="color:var(--nane)">${hedef.ad}</span> göster`
   };
-  E("komut").innerHTML = kalip[kaynak];
+  const kandirKalip = {
+    kendi: `Modele <span style="color:var(--nane)">${hedef.ad}</span> dedirt <small>· o hareketi yapmadan</small>`,
+    ses:   `Makineye <span style="color:var(--nane)">${hedef.ad}</span> yazdır <small>· o kelimeyi söylemeden</small>`,
+    nesne: `Makineye <span style="color:var(--nane)">${hedef.ad}</span> dedirt <small>· gerçeğini göstermeden</small>`
+  };
+  E("komut").innerHTML = (mod === "kandir" ? kandirKalip : kalip)[kaynak];
 }
 function bindir(metin){
   const b = E("bindirme"); b.textContent = metin; b.classList.add("gorun");
@@ -489,12 +502,12 @@ function bindir(metin){
 function bulundu(){
   puan++; bulunanlar.push(hedef.ad);
   E("puan").firstChild.textContent = puan;
-  bindir(`${hedef.ad} ✓`);
+  bindir(mod === "kandir" ? `kandırıldı · ${hedef.ad} ✓` : `${hedef.ad} ✓`);
   yeniKomut();
 }
 /* Tanıtamadığın nesneyi geçebilirsin, bedeli bir puan. */
 function gecildi(){
-  if (!hedef || mod!=="yaris") return;
+  if (!hedef || !yarisGibi()) return;
   puan--;
   E("puan").firstChild.textContent = puan;
   gecilenler.push(hedef.ad);
@@ -513,7 +526,7 @@ async function basla(secilen){
   mod = secilen;
   E("acilis").style.display="none"; E("bitis").style.display="none";
   E("sahne").classList.add("acik");
-  E("sayac").hidden = mod!=="yaris"; E("puan").hidden = mod!=="yaris"; E("btnAtla").hidden = mod!=="yaris";
+  E("sayac").hidden = !yarisGibi(); E("puan").hidden = !yarisGibi(); E("btnAtla").hidden = !yarisGibi();
   E("dinleme").hidden = kaynak!=="ses";
   E("gorulen").hidden = kaynak==="ses";
   E("video").hidden   = kaynak==="ses";
@@ -535,7 +548,7 @@ async function basla(secilen){
   }
 
   calisiyor = true;
-  if (mod==="yaris"){
+  if (yarisGibi()){
     puan=0; bulunanlar=[]; gecilenler=[]; E("puan").firstChild.textContent=0; yeniKomut(); sayacBaslat();
   } else {
     hedef=null;
@@ -550,12 +563,14 @@ async function basla(secilen){
 function turuBitir(){
   calisiyor=false; clearInterval(sayacId); kamerayiKapat(); sesiDurdur();
   E("sahne").classList.remove("acik");
-  if (mod==="yaris"){
+  if (yarisGibi()){
     tablo.push({oyuncu,puan});
+    E("bitis").querySelector("h2").textContent = "Süre doldu";
+    E("sonMetin").textContent = mod === "kandir" ? "kez kandırdınız" : "nesne tanıttınız";
     E("sonPuan").textContent = puan;
     E("sonListe").innerHTML =
       bulunanlar.map(a=>`<li>${a}</li>`).join("") +
-      gecilenler.map(a=>`<li style="opacity:.55">${a} — geçildi</li>`).join("");
+      gecilenler.map(a=>`<li style="opacity:.55">${a} — ${mod === "kandir" ? "kandıramadık" : "geçildi"}</li>`).join("");
     E("tablo").innerHTML = tablo.map(t=>`<div><span>Oyuncu ${t.oyuncu}</span><b>${t.puan}</b></div>`).join("");
     E("bitis").style.display="block";
   } else {
@@ -565,9 +580,10 @@ function turuBitir(){
 
 E("btnDeneme").onclick = ()=>basla("deneme");
 E("btnYaris").onclick  = ()=>basla("yaris");
+E("btnKandir").onclick = ()=>basla("kandir");
 E("btnBitir").onclick  = turuBitir;
 E("btnAtla").onclick   = gecildi;
-E("btnSira").onclick   = ()=>{ oyuncu++; basla("yaris"); };
+E("btnSira").onclick   = ()=>{ oyuncu++; basla(mod || "yaris"); };
 E("btnBasa").onclick   = ()=>{ E("bitis").style.display="none"; E("acilis").style.display="block"; };
 
 /* ---- kumanda seçimi: nesne / hareket / ses ---- */
@@ -586,6 +602,11 @@ const YARIS_METIN = {
   kendi: "Ekranın istediği hareketi yapın. Süre bitince puanınız kaç hareket tanıttığınızdır.",
   ses:   "Ekranın istediği kelimeyi söyleyin. Makine doğru duyarsa geçersiniz."
 };
+const KANDIR_METIN = {
+  nesne: "Ekranın istediği nesneyi makineye söyletin — ama gerçeğini göstermeden. Resmi, çizimi, oyuncağı serbest.",
+  kendi: "Ekranın istediği hareketi modele söyletin — ama o hareketi yapmadan. Başka bir duruşla kandırabilir misiniz?",
+  ses:   "Ekranın istediği kelimeyi makineye yazdırın — ama o kelimeyi söylemeden. Benzeyen başka bir şey deneyin."
+};
 function kumandaSec(yeni){
   if (yeni === "ses" && !tanimaVarMi()){
     E("durum").textContent = "Bu tarayıcı konuşma tanımayı desteklemiyor. Chrome ile deneyin.";
@@ -598,6 +619,7 @@ function kumandaSec(yeni){
   E("girisMetin").textContent = GIRIS_METIN[yeni];
   E("btnDeneme").querySelector("span").textContent = DENEME_METIN[yeni];
   E("btnYaris").querySelector("span").textContent  = YARIS_METIN[yeni];
+  E("btnKandir").querySelector("span").textContent = KANDIR_METIN[yeni];
   E("durum").textContent = "";
 }
 document.querySelectorAll(".kchip").forEach(d =>
